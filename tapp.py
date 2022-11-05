@@ -7,11 +7,25 @@ from datetime import datetime
 from Config.DBConnection import *
 from flask_cors import CORS
 from CustomerDAO import *
+from CommonDAO import *
 from OperatorReport import fetch_operator, fetch_operator_perf_data
 from VehicleReport import *
+from OperatorManagement import *
+from StationReport import *
 
 app = Flask(__name__)
 CORS(app)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+
+    content = request.json
+
+    response = login_dao(content['email_address'], content['pwd'])
+    print(response)
+    return jsonify(response)
+
 
 @app.route('/sign-up', methods=['POST'])
 def sign_up():
@@ -45,7 +59,10 @@ def sign_up():
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         ## User Profile Insert Query
-        cur.execute(f"INSERT INTO user_profile (first_name, last_name, pwd, role, address, phone_number, id_proof, id_proof_type, is_active, email_address, created_datetime, last_usage_datetime) values ('{first_name}','{last_name}','{pwd}','{role}','{address}','{phone_number}','{id_proof}','{id_proof_type}','{is_active}','{email_address}',(SELECT now()),(SELECT now()));")
+        cur.execute(f"""INSERT INTO user_profile (first_name, last_name, pwd, role, address, phone_number, id_proof, id_proof_type, is_active, email_address, 
+        created_datetime, last_usage_datetime) 
+        values ('{first_name}','{last_name}','{pwd}','{role}','{address}','{phone_number}','{id_proof}','{id_proof_type}','{is_active}','{email_address}',
+        (SELECT now()),(SELECT now()));""")
         conn.commit()
 
         ## Fetch user_id from unique email address
@@ -53,43 +70,23 @@ def sign_up():
         user_id = cur.fetchone()[0]
         
         ## E-Wallet Insert Query
-        cur.execute(f"INSERT INTO ewallet (user_id, wallet_amount, card_number, expiry_month_yr, cvv, created_date, last_updateddate) values ({user_id},{wallet_amount},{card_number},'{expiry_month_yr}',{cvv},(SELECT now()),(SELECT now()));")
+        cur.execute(f"""INSERT INTO ewallet (user_id, wallet_amount, card_number, expiry_month_yr, cvv, created_date, last_updateddate) 
+        values ({user_id},{wallet_amount},{card_number},'{expiry_month_yr}',{cvv},(SELECT now()),(SELECT now()));""")
         conn.commit()
         cur.close()
         conn.close()
 
         return f"User {first_name}{last_name} with email {email_address} and user_id {user_id} created"
 
-@app.route('/vehicle-list', methods=['GET'])
+@app.route('/vehicle-list', methods=['POST'])
 def vehicle_list():
-    '''
-    Input - station_id : int
-    Provides a list of all the vehicles along with their information for the specified station
-    Output - vehicle_id, model_type, last_issued, battery_level, estimated_range 
-    '''
-    if request.method == 'GET':
+    
+    content = request.json
+    station_id = content['station_id']
         
-        station_id = request.json["station_id"]
-        print("station id", station_id)
-
-        conn = get_connection()
-        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-        cur.execute('SELECT * FROM vehicle;')
-
-        for record in cur.fetchall():
-            print(record['vehicle_type'])
-
-        cur.execute(f"SELECT v.vehicle_id, v.vehicle_type, v.vehicle_number, vu.last_modified_on, vu.vehicle_charge_percentage FROM vehicle v right join vehicle_usage vu on v.vehicle_id = vu.vehicle_id where vu.vehicle_current_station_id = {station_id};")
-
-        ## Vehicle List Json
-        veh_lst_json = json.dumps([dict(idx) for idx in cur.fetchall()])
-        print(veh_lst_json)
-
-        cur.close()
-        conn.close()
-
-    return veh_lst_json
+    response = fetch_vehicle_list(station_id)
+    
+    return response
 
 @app.route('/report-vehicle', methods=['POST'])
 def report_vehicle():
@@ -105,24 +102,24 @@ def report_vehicle():
         user_id = rv_json["user_id"]
         vehicle_id = rv_json["vehicle_id"]
         issue_description = rv_json["issue_description"]
-        issue_reported_on = rv_json["issue_reported_on"]
+        #issue_reported_on = rv_json["issue_reported_on"]
 
         conn = get_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-        cur.execute(f"INSERT INTO vehicle_issue (vehicle_id, issue_active, issue_type, issue_description, issue_reported_on) values ({vehicle_id},'Y','{issue_type}','{issue_description}','{issue_reported_on}');")
+        cur.execute(f"""INSERT INTO vehicle_issue (vehicle_id, issue_active, issue_type, issue_description, identified_by,issue_reported_on) 
+        values ({vehicle_id},'Y','{issue_type}','{issue_description}','{user_id}',(SELECT now()));""")
 
         conn.commit()
         cur.close()
         conn.close()
-
-    return "Row inserted in vehicle_issue table"
+    response = {'report_vehicle': 'Success'}
+    return jsonify(response), 200
 
 
 @app.route('/vtr/', methods = ['POST'])
 def vehicle_type_report():
-    print("Here inside vehicle_type_report..")
-    print(request, " ==> This is the request json..")
+    
     content = request.json
     from_date = content['from_date'].split(":")[1]
     to_date = content['to_date'].split(":")[1]
@@ -142,6 +139,26 @@ def vehicle_operational_cost_report():
     response = {'vocr_report_generation_status': 'Success'}
     return jsonify(response), 200
 
+@app.route('/asr', methods = ['POST'])
+def active_station_report():
+    content = request.json
+    from_date = content['from_date'].split(":")[1]
+    to_date = content['to_date'].split(":")[1]
+    station_name = content['station_name']
+    generate_activestation_report(from_date, to_date, station_name)
+    response = {'asr_report_generation_status': 'Success'}
+    return jsonify(response), 200
+
+@app.route('/srr', methods = ['POST'])
+def station_revenue_report():
+    content = request.json
+    from_date = content['from_date'].split(":")[1]
+    to_date = content['to_date'].split(":")[1]
+    station_name = content['station_name']
+    generate_stationrevenue_report(from_date, to_date, station_name)
+    response = {'srr_report_generation_status': 'Success'}
+    return jsonify(response), 200
+
 
 @app.route('/fol/', methods = ['GET'])
 def fetch_operator_list():
@@ -159,17 +176,6 @@ def fetch_perf_data():
     response = {'fpd_report_generation_status': 'Success'}
     return jsonify(response), 200
 
-
-# @app.route('/vehicle-list', methods=['POST'])
-# def vehicle_list():
-    
-#     content = request.json
-#     station_id = content['station_id']
-        
-#     response = fetch_vehicle_list(station_id)
-    
-#     return response
-
 @app.route('/mv', methods=['POST'])
 def move_vehicle():
     
@@ -182,6 +188,29 @@ def move_vehicle():
     
     return response
 
+@app.route('/mo', methods=['POST'])
+def manage_operator():
+    #address, phone_number, is_active, email_address, last_name, first_name
+    content = request.json
+    print(content)
+    update_operator(content['address'], content['phone_number'], content['is_active'], content['email_address'], content['last_name'],content['first_name'])
+    response = {'manage_operator': 'Success'}
+    
+    return jsonify(response), 200
+
+
+@app.route('/io', methods=['POST'])
+def insert_operator():
+    
+    content = request.json
+    print(content)
+    #first_name, last_name, pwd, role, address, phone_number, id_proof, id_proof_type, email_address
+        
+    insert_operator_dao(content['first_name'], content['last_name'], content['pwd'], content['role'], content['address'], content['phone_number'], content['id_proof'], content['id_proof_type'], content['email_address'])
+    response = {'insert_operator': 'Success'}
+    
+    return jsonify(response), 200
+
 if __name__=='__main__':
     # Development Mode
-    app.run(debug=True)
+    app.run()

@@ -11,19 +11,20 @@ def fetch_vehicle_list(station_id):
     conn = get_connection()
     curr = conn.cursor()
 
-    curr.execute(f"""SELECT v.vehicle_number, v.vehicle_type, vu.last_used_on, vu.vehicle_charge_percentage 
+    curr.execute(f"""SELECT v.vehicle_number, v.vehicle_type, vu.last_used_on, vu.vehicle_charge_percentage, vehicle_charge_percentage*2 as vehicle_ride_kms 
     FROM vehicle v right join vehicle_usage vu on v.vehicle_id = vu.vehicle_id where vu.is_active='Y' and vu.vehicle_current_station_id = {station_id};""")
 
     vehicle_list = []
     #vehicle_number, vehicle_type, last_used_on, percentage_of_charge
     for record in curr.fetchall():
-        vehicle = Vehicle(record[0], record[1], record[2].strftime('%m/%d/%Y'), str(record[3]))
+        vehicle = Vehicle(record[0], record[1], record[2].strftime('%m/%d/%Y'), str(record[3]), record[4])
         vehicle_list.append(vehicle)
         print(record)
    
     curr.close()
     conn.close()
     res = [vl.to_json() for vl in vehicle_list]
+    print(res)
     return res
 
 
@@ -54,7 +55,10 @@ def move_vehicle_dao(from_station, to_station, vehicles):
     conn.close()
     return True
     
+
+def rent_ride(user_id, vehicle_id):
+    return True
     
 #move_vehicle(4, 5, "1007,1006")
 #report_vehicle('1007', 'Puncture', 'Vehicle Punctured', '4', 'High')
-#fetch_vehicle_list('7')
+fetch_vehicle_list('7')

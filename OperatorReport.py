@@ -23,6 +23,7 @@ def fetch_operator():
         name_value_pair_list.append(name_value_pair)
     
     res = [nvp.to_json() for nvp in name_value_pair_list]
+    print(res)
     conn.close()
     
     return res
@@ -43,14 +44,12 @@ def fetch_operator_perf_data(start_date, to_date, operator_email):
     curr.execute(select_query)
     date_list = []
     count_list = []
-    indx = 0
 
     for record in curr.fetchall():
         x_date = record[1].strftime('%m/%d/%Y')
         y_count = record[0]
         date_list.append(x_date)
         count_list.append(y_count)
-        indx = indx + 1
 
     plt.pie(count_list, labels = date_list, startangle = 90)
     plt.show()
