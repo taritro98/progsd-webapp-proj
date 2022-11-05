@@ -241,6 +241,21 @@ def load_data():
     
     return jsonify(response), 200
 
+@app.route('/track-ride', methods=['GET'])
+def track_ride():
+    '''
+    Input- vehicle_number
+    Tracks a particular vehicle by its vehicle number and returns information regarding its location, last used date, last used name etc.
+    Returns – vehicle_id, vehicle_number, last_used_date, last_used_by_id, last_used_by_name, current_location_id; only one record 
+    '''
+    
+    veh_num = request.json.get("vehicle_number")
+    track_ride_res = track_ride_dao(veh_num)
+    
+    response = {'track_ride': track_ride_res}
+    
+    return jsonify(response), 200
+
 if __name__=='__main__':
     # Development Mode
     app.run()

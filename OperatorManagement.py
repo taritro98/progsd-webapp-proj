@@ -1,6 +1,29 @@
 from Config.DBConnection import *
 from datetime import datetime
 from createdict import Create_dict
+from Vehicle import Vehicle
+
+def track_ride_dao(vehicle_num):
+
+    conn = get_connection()
+    curr = conn.cursor()
+
+    curr.execute(f"""SELECT v.vehicle_id, v.vehicle_number, vu.last_used_on, vu.vehicle_current_station_id, cvu.user_id as last_used_by_id, CONCAT(up.first_name,' ',up.last_name) as last_used_by_name FROM vehicle v join vehicle_usage vu on v.vehicle_id = vu.vehicle_id join customer_vehicle_usage cvu on vu.vehicle_id = cvu.vehicle_id join user_profile up on cvu.user_id = up.user_id where v.vehicle_number = '{vehicle_num}';""")
+
+    track_dict = {}
+    for row in curr.fetchall():
+        print(row, type(row))
+        track_dict["vehicle_id"] = row[0]
+        track_dict["vehicle_number"] = row[1]
+        track_dict["last_used_on"] = row[2]
+        track_dict["vehicle_current_station_id"] = row[3]
+        track_dict["last_used_by_id"] = row[4]
+        track_dict["last_used_by_name"] = row[5]
+
+    curr.close()
+    conn.close()
+
+    return track_dict
 
 def active_tasks_dao():
     set_updates = ''
