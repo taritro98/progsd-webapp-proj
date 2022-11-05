@@ -1,5 +1,26 @@
 from Config.DBConnection import *
 from datetime import datetime
+from createdict import Create_dict
+
+def active_tasks_dao():
+    set_updates = ''
+        
+    select_query = """SELECT vi.issue_id, vi.vehicle_id, v.vehicle_type, vi.issue_type, vi.issue_reported_on, vi.priority, vi.issue_description from vehicle_issue vi left join vehicle v on vi.vehicle_id = v.vehicle_id where vi.issue_active = 'Y';"""
+    conn = get_connection()
+    curr = conn.cursor()
+    curr.execute(select_query)
+
+    # Call custom dict class constructor
+    active_tasks_dict = Create_dict()
+
+    for record in curr.fetchall():
+        active_tasks_dict.add(record[0],({"issue_id":record[0],"vehicle_id":record[1],"vehicle_type":record[2],"issue_type":record[3],"issue_reported_on":record[4],"priority":record[5],"issue_description":record[6]}))
+
+    print(active_tasks_dict)
+    conn.commit()
+    conn.close()
+
+    return active_tasks_dict
 
 def update_operator(address, phone_number, is_active, email_address, last_name, first_name):
     set_updates = ''

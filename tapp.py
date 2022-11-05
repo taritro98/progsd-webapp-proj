@@ -210,7 +210,6 @@ def insert_operator():
     
     return jsonify(response), 200
 
-
 @app.route('/active-tasks-list', methods=['GET'])
 def active_tasks_list():
     '''
