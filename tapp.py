@@ -42,7 +42,7 @@ def sign_up():
         first_name = signup_content.get("first_name")
         last_name = signup_content.get("last_name")
         pwd = signup_content.get("pwd")
-        role = signup_content.get("role")
+        role = 'C'
         address = signup_content.get("address")
         phone_number = signup_content.get("phone_number")
         id_proof = signup_content.get("id_proof")
@@ -75,8 +75,8 @@ def sign_up():
         conn.commit()
         cur.close()
         conn.close()
-
-        return f"User {first_name}{last_name} with email {email_address} and user_id {user_id} created"
+        response = {"Message": "User {first_name}{last_name} with email {email_address} and user_id {user_id} created"}
+        return jsonify(response), 200
 
 @app.route('/vehicle-list', methods=['POST'])
 def vehicle_list():
@@ -163,7 +163,6 @@ def station_revenue_report():
 @app.route('/fol/', methods = ['GET'])
 def fetch_operator_list():
     response = fetch_operator()
-    print(response, " ==> Here..")
     return response
 
 @app.route('/fpd/', methods = ['POST'])
@@ -208,6 +207,38 @@ def insert_operator():
         
     insert_operator_dao(content['first_name'], content['last_name'], content['pwd'], content['role'], content['address'], content['phone_number'], content['id_proof'], content['id_proof_type'], content['email_address'])
     response = {'insert_operator': 'Success'}
+    
+    return jsonify(response), 200
+
+
+@app.route('/active-tasks-list', methods=['GET'])
+def active_tasks_list():
+    '''
+    Fetch tasks and their corresponding information which are active
+    Returns : issue_id, vehicle_id, vehicle_modal issue_type, issue_reported_on, priority, issue_description
+    '''
+        
+    active_tasks_dict = active_tasks_dao()
+    
+    response = {'active_tasks_dict': active_tasks_dict}
+    
+    return active_tasks_dict
+
+
+@app.route('/rent-ride', methods=['GET', 'POST'])
+def rent_ride():
+    rent_ride_content = request.json
+    print(rent_ride_content.get("user_id"))
+    print(rent_ride_content.get("vehicle_id"))
+    response = rent_ride_dao(rent_ride_content.get("user_id"), rent_ride_content.get("vehicle_id") )
+    return jsonify(response), 200
+
+@app.route('/load_data', methods=['POST'])
+def load_data():
+    
+    content = request.json
+    print(content)
+    response = load_data_dao(content['user_id'])
     
     return jsonify(response), 200
 

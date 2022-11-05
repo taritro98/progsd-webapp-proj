@@ -45,6 +45,6 @@ def generate_activestation_report(start_date, end_date, station_name):
     plt.show()
 
 
-vocr = generate_activestation_report('2022-10-01', '2022-10-04', 'college lands')
-print(vocr)
+#vocr = generate_activestation_report('2022-10-01', '2022-10-04', 'college lands')
+#print(vocr)
 

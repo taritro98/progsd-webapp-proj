@@ -34,4 +34,25 @@ def login_dao(email_address, pwd):
     conn.close()
     return response
 
+
+
+def load_data_dao(user_id):
+    conn = get_connection()
+    curr = conn.cursor()
+    
+    query = """select up.first_name || ' ' || up.last_name, e.wallet_amount from user_profile up  right 
+    join ewallet e on up.user_id = e.user_id  where up.user_id  = '""" + str(user_id) + """';"""
+    curr.execute(query)
+    response = {};
+    for record in curr.fetchall():
+        response["user_name"] = record[0]
+        response["ewallet_amount"] = str(record[1])
+    print(response, " ==> response")
+    conn.commit()
+    curr.close()
+    conn.close()
+    return response
+
+
+load_data_dao('35')
 #print(login_dao('newoperator2@tringtring.com', 'sdf'))

@@ -11,7 +11,7 @@ import json
 def fetch_operator():
     conn = get_connection()
     curr = conn.cursor()
-    select_query = """select email_adress ||'(' || first_name || ' ' || last_name|| ')' as display, email_adress as value from user_profile where role = 'O' """
+    select_query = """select email_address ||'(' || first_name || ' ' || last_name|| ')' as display, email_address as value from user_profile where role = 'O' """
     curr.execute(select_query)
     name_value_pair_list = []
 
