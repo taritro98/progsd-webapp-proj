@@ -211,6 +211,19 @@ def insert_operator():
     
     return jsonify(response), 200
 
+@app.route('/active-tasks-list', methods=['GET'])
+def active_tasks_list():
+    '''
+    Fetch tasks and their corresponding information which are active
+    Returns : issue_id, vehicle_id, vehicle_modal issue_type, issue_reported_on, priority, issue_description
+    '''
+        
+    active_tasks_dict = active_tasks_dao()
+    
+    response = {'active_tasks_dict': active_tasks_dict}
+    
+    return jsonify(response), 200
+
 if __name__=='__main__':
     # Development Mode
     app.run()
