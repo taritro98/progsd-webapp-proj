@@ -39,7 +39,6 @@ def active_tasks_dao():
     for record in curr.fetchall():
         active_tasks_dict.add(record[0],({"issue_id":record[0],"vehicle_id":record[1],"vehicle_type":record[2],"issue_type":record[3],"issue_reported_on":record[4],"priority":record[5],"issue_description":record[6]}))
 
-    print(active_tasks_dict)
     conn.commit()
     conn.close()
 
