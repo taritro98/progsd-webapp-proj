@@ -8,7 +8,7 @@ def track_ride_dao(vehicle_num):
     conn = get_connection()
     curr = conn.cursor()
 
-    curr.execute(f"""SELECT v.vehicle_id, v.vehicle_number, vu.last_used_on, vu.vehicle_current_station_id, cvu.user_id as last_used_by_id, CONCAT(up.first_name,' ',up.last_name) as last_used_by_name FROM vehicle v join vehicle_usage vu on v.vehicle_id = vu.vehicle_id join customer_vehicle_usage cvu on vu.vehicle_id = cvu.vehicle_id join user_profile up on cvu.user_id = up.user_id where v.vehicle_number = '{vehicle_num}';""")
+    curr.execute(f"""SELECT v.vehicle_id, v.vehicle_number, vu.last_used_on, s.station_name, cvu.user_id as last_used_by_id, CONCAT(up.first_name,' ',up.last_name) as last_used_by_name FROM vehicle v join vehicle_usage vu on v.vehicle_id = vu.vehicle_id join customer_vehicle_usage cvu on vu.vehicle_id = cvu.vehicle_id join user_profile up on cvu.user_id = up.user_id join station s on s.station_id = vu.vehicle_current_station_id where v.vehicle_number = '{vehicle_num}';""")
 
     track_dict = {}
     for row in curr.fetchall():

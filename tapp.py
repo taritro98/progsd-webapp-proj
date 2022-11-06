@@ -246,7 +246,7 @@ def track_ride():
     '''
     Input- vehicle_number
     Tracks a particular vehicle by its vehicle number and returns information regarding its location, last used date, last used name etc.
-    Returns – vehicle_id, vehicle_number, last_used_date, last_used_by_id, last_used_by_name, current_location_id; only one record 
+    Returns – vehicle_id, vehicle_number, last_used_date, last_used_by_id, last_used_by_name, current_location_name; only one record 
     '''
     
     veh_num = request.json.get("vehicle_number")
