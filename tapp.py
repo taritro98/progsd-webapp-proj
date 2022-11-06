@@ -256,6 +256,59 @@ def track_ride():
     
     return jsonify(response), 200
 
+@app.route('/total-time-per-cust', methods=['GET'])
+def total_time_per_cust():
+    '''
+    Gets total time per customer KPI for visualization
+    Returns – Total time per customer
+    '''
+
+    user_id = request.json.get("user_id")
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(f"""SELECT NOW() - pick_up_time as total_time_per_customer from customer_vehicle_usage where user_id ={user_id};""")
+
+    for time in cur.fetchall():
+        timediff = time[0]
+    
+    total_time = str(timediff)
+
+    total_time = {"total_time" : total_time}
+
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify(total_time), 200
+
+
+@app.route('/cumul-timesum', methods=['GET'])
+def cumul_timesum():
+    '''
+    Gets total cumulative time per customer KPI for visualization
+    Returns – Total cumulative time per customer
+    '''
+
+    user_id = request.json.get("user_id")
+
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(f"""SELECT SUM(drop_time - pick_up_time) as total_cumultime_per_customer from customer_vehicle_usage where user_id={user_id};""")
+
+    for time in cur.fetchall():
+        timediff = str(time[0])
+
+    total_time = {"total_cumultime" : timediff}
+
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify(total_time), 200
+
 if __name__=='__main__':
     # Development Mode
     app.run()
